@@ -1,4 +1,6 @@
+//! This crate conatins an N-dimensional generalization of a quad-tree called **T**wo-**p**ower-__n__-tree or tpn-tree,
+//! as there exist 2^N children per node, where N is the number of dimensions.
+
 mod tpntree;
 
-// TODO: impl 'variance' in nalgebra crate feature
-// TODO: impl depth first/ breath first iterators
+pub use tpntree::TpnTree;

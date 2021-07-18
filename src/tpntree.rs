@@ -1,5 +1,3 @@
-//! This module conatins an N-dimensional generalization of a quad-tree.
-
 mod iterators;
 mod nalgebra;
 
