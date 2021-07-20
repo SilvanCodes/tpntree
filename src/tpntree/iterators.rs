@@ -28,13 +28,11 @@ impl<'a, D, const N: usize> Iterator for TpnTreeDepthFirstIterator<'a, D, N> {
     type Item = &'a TpnTree<D, N>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.stack.pop().and_then(|tree| {
-            if let Some(children) = &tree.children {
-                for child in children {
-                    self.stack.push(child);
-                }
+        self.stack.pop().map(|tree| {
+            for child in &tree.children {
+                self.stack.push(child);
             }
-            Some(tree)
+            tree
         })
     }
 }
@@ -55,13 +53,11 @@ impl<'a, D, const N: usize> Iterator for TpnTreeBreadthFirstIterator<'a, D, N> {
     type Item = &'a TpnTree<D, N>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.queue.pop_front().and_then(|tree| {
-            if let Some(children) = &tree.children {
-                for child in children {
-                    self.queue.push_back(child);
-                }
+        self.queue.pop_front().map(|tree| {
+            for child in &tree.children {
+                self.queue.push_back(child);
             }
-            Some(tree)
+            tree
         })
     }
 }
@@ -77,24 +73,15 @@ mod tests {
         tree.data = Some(1.0);
         tree.divide();
 
-        tree.children
-            .as_mut()
-            .unwrap()
-            .last_mut()
-            .and_then::<(), _>(|child| {
-                child.data = Some(2.0);
-                child.divide();
-                child
-                    .children
-                    .as_mut()
-                    .unwrap()
-                    .last_mut()
-                    .and_then::<(), _>(|childchild| {
-                        childchild.data = Some(3.0);
-                        None
-                    });
+        tree.get_child_mut(3).and_then::<(), _>(|child| {
+            child.data = Some(2.0);
+            child.divide();
+            child.get_child_mut(3).and_then::<(), _>(|childchild| {
+                childchild.data = Some(3.0);
                 None
             });
+            None
+        });
 
         let mut iter = tree.iter_depth_first();
 
@@ -110,29 +97,21 @@ mod tests {
         tree.data = Some(1.0);
         tree.divide();
 
-        tree.children
-            .as_mut()
-            .unwrap()
-            .get_mut(0)
-            .and_then::<(), _>(|child| {
-                child.data = Some(2.0);
-                child.divide();
-                None
-            });
-        tree.children
-            .as_mut()
-            .unwrap()
-            .get_mut(1)
-            .and_then::<(), _>(|child| {
-                child.data = Some(3.0);
-                child.divide();
-                None
-            });
+        tree.get_child_mut(0).and_then::<(), _>(|child| {
+            *child.data_mut() = Some(2.0);
+            child.divide();
+            None
+        });
+        tree.get_child_mut(1).and_then::<(), _>(|child| {
+            *child.data_mut() = Some(3.0);
+            child.divide();
+            None
+        });
 
         let mut iter = tree.iter_breadth_first();
 
-        assert_eq!(iter.next().and_then(|t| t.data), Some(1.0));
-        assert_eq!(iter.next().and_then(|t| t.data), Some(2.0));
-        assert_eq!(iter.next().and_then(|t| t.data), Some(3.0));
+        assert_eq!(iter.next().and_then(|t| t.data().as_ref()), Some(&1.0));
+        assert_eq!(iter.next().and_then(|t| t.data().as_ref()), Some(&2.0));
+        assert_eq!(iter.next().and_then(|t| t.data().as_ref()), Some(&3.0));
     }
 }

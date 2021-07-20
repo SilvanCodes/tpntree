@@ -7,8 +7,7 @@ edition = "2018"
 
 [dependencies]
 bitvec = "0.22"
-nalgebra = "0.28"
+nalgebra = { version = "0.28", optional = true }
 
 [features]
-default = ["nalg"]
-nalg = []
+default = ["nalgebra"]

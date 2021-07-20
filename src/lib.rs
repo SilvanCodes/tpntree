@@ -4,4 +4,4 @@
 
 mod tpntree;
 
-pub use tpntree::TpnTree;
+pub use crate::tpntree::TpnTree;
