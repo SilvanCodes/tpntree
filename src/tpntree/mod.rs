@@ -19,6 +19,28 @@ pub struct TpnTree<D, const N: usize> {
 
 impl<D, const N: usize> TpnTree<D, N> {
     /// Creates a new TpnTree.
+    ///
+    /// Use this function if you need explicit control over the initial coordinates or a span with various length along different axis.
+    /// Usually the [`TpnTree::root`] function should suffice and is simpler to use.
+    ///
+    /// # Examples
+    ///
+    /// Here we create a one dimensional tree, i.e. with one axis sitting on the center `[0.0]` with a span of 1.0 in each direction `[1.0]`.
+    /// This is equal to a line segment spanning from -1.0 to 1.0 with its midpoint at 0.0.
+    /// The `level` of the root is usually zero.
+    /// ```
+    /// # use tpntree::TpnTree;
+    ///
+    /// let root = TpnTree::<(), 1>::new([0.0], [1.0], 0);
+    /// ```
+    ///
+    /// Now lets create a two dimensional tree.
+    /// The tree root corresponds to a square with its center sitting at the coordinates (1.0/1.0) with edges one edge being 4.0 the other being 1.0 units long.
+    /// The edges equate to twice the span as it originates from the midpoint.
+    /// ```
+    /// # use tpntree::TpnTree;
+    /// let root = TpnTree::<(), 2>::new([1.0, 1.0], [2.0, 0.5], 0);
+    /// ```
     pub fn new(coordinates: [f64; N], span: [f64; N], level: usize) -> Self {
         Self {
             coordinates,
@@ -29,13 +51,43 @@ impl<D, const N: usize> TpnTree<D, N> {
         }
     }
 
-    /// Creates a new tpntree with equal span in all dimension at the center of the space at level zero.
+    /// Creates a new TpnTree with equal span in all dimension at the center of the space at level zero.
+    ///
+    /// Use this function if you want your TpnTree to represenst a centered N-dimensional hypercube.
+    ///
+    /// # Examples
+    ///
+    /// Here we create a three dimensional TpnTree with a span of 1.0 in ervery dimension.
+    /// That is equal to a cube with edges of length 2.0.
+    /// ```
+    /// # use tpntree::TpnTree;
+    /// let root = TpnTree::<(), 3>::root(1.0);
+    /// ```
     pub fn root(span: f64) -> Self {
         Self::new([0.0; N], [span; N], 0)
     }
 
-    /// Divides self along each axis and fills self.children.
+    /// Divides the TpnTree into subregions creating new TpnTrees as children.
+    ///
     /// Returns true if division happened, returns false when already divided.
+    ///
+    /// Each created child has its center moved by half the parents span up or down along the axis.
+    /// Every child is equal to one unique combination of such half span moves.
+    ///
+    /// # Examples
+    ///
+    /// Dividing in the 2D case is creating four smaller squares.
+    ///
+    /// +---+    +-+-+
+    /// |   | => +-+-+
+    /// +---+    +-+-+
+    /// ```
+    /// # use tpntree::TpnTree;
+    /// let mut root = TpnTree::<(), 2>::root(1.0);
+    ///
+    /// assert!(root.divide());
+    /// assert_eq!(root.child_count(), 4);
+    /// ```
     pub fn divide(&mut self) -> bool {
         if self.children.is_empty() {
             let mut children = Vec::<Self>::new();
@@ -77,38 +129,51 @@ impl<D, const N: usize> TpnTree<D, N> {
         }
     }
 
+    /// Get a reference to a child TpnTree if it exists.
     pub fn get_child(&self, index: usize) -> Option<&Self> {
         self.children.get(index)
     }
+    /// Get a mutable reference to a child TpnTree if it exists.
     pub fn get_child_mut(&mut self, index: usize) -> Option<&mut Self> {
         self.children.get_mut(index)
     }
 
+    /// Returns the count of direct children.
     pub fn child_count(&self) -> usize {
         self.children.len()
     }
 
+    /// Iterates all direct children by reference.
     pub fn iter_children(&self) -> impl Iterator<Item = &Self> {
         self.children.iter()
     }
 
+    /// Iterates all direct children by mutable reference.
     pub fn iter_children_mut(&mut self) -> impl Iterator<Item = &mut Self> {
         self.children.iter_mut()
     }
 
+    /// Returns the coordinates of the center of the TpnTree.
     pub fn coordinates(&self) -> [f64; N] {
         self.coordinates
     }
+
+    /// Returns the span of the TpnTree.
     pub fn span(&self) -> [f64; N] {
         self.span
     }
 
+    /// Returns the data by reference of the TpnTree.
     pub fn data(&self) -> &Option<D> {
         &self.data
     }
+
+    /// Returns the data by mutable reference of the TpnTree.
     pub fn data_mut(&mut self) -> &mut Option<D> {
         &mut self.data
     }
+
+    /// Returns the level of the TpnTree.
     pub fn level(&self) -> usize {
         self.level
     }

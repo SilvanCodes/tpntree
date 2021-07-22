@@ -19,7 +19,7 @@ pub struct TpnTreeDepthFirstIterator<'a, D, const N: usize> {
 }
 
 impl<'a, D, const N: usize> TpnTreeDepthFirstIterator<'a, D, N> {
-    pub fn new(root: &'a TpnTree<D, N>) -> Self {
+    fn new(root: &'a TpnTree<D, N>) -> Self {
         Self { stack: vec![root] }
     }
 }
@@ -42,7 +42,7 @@ pub struct TpnTreeBreadthFirstIterator<'a, D, const N: usize> {
 }
 
 impl<'a, D, const N: usize> TpnTreeBreadthFirstIterator<'a, D, N> {
-    pub fn new(root: &'a TpnTree<D, N>) -> Self {
+    fn new(root: &'a TpnTree<D, N>) -> Self {
         Self {
             queue: vec![root].into_iter().collect(),
         }
