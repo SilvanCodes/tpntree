@@ -177,6 +177,27 @@ impl<D, const N: usize> TpnTree<D, N> {
     pub fn level(&self) -> usize {
         self.level
     }
+
+    /// Returns a list of adjacent trees along each dimension.
+    ///
+    /// The trees appear in order of dimension and that first the tree above self, then the one below.
+    /// Thereby there will be dimension times two TpnTrees returned.
+    pub fn adjacent_trees(&self) -> Vec<Self> {
+        let mut adjacent_trees = Vec::new();
+        for i in 0..self.coordinates.len() {
+            let mut coordinates_above = self.coordinates.clone();
+            coordinates_above[i] += self.span[i] * 2.0;
+            let tree_above = Self::new(coordinates_above, self.span.clone(), 0);
+
+            let mut coordinates_below = self.coordinates.clone();
+            coordinates_below[i] -= self.span[i] * 2.0;
+            let tree_below = Self::new(coordinates_below, self.span.clone(), 0);
+
+            adjacent_trees.push(tree_above);
+            adjacent_trees.push(tree_below);
+        }
+        adjacent_trees
+    }
 }
 
 #[cfg(test)]
@@ -247,5 +268,32 @@ mod tests {
             .any(|c| c.coordinates() == [-0.5, -0.5, -0.5]));
 
         assert!(!root.divide());
+    }
+
+    #[test]
+    pub fn get_adjacent_trees_dimension_one() {
+        let root = TpnTree::<(), 1>::root(1.0);
+
+        let adjacent_trees = root.adjacent_trees();
+
+        assert!(adjacent_trees.iter().any(|c| c.coordinates() == [2.0]));
+        assert!(adjacent_trees.iter().any(|c| c.coordinates() == [-2.0]));
+    }
+
+    #[test]
+    pub fn get_adjacent_trees_dimension_two() {
+        let root = TpnTree::<(), 2>::root(1.0);
+
+        let adjacent_trees = root.adjacent_trees();
+
+        assert!(adjacent_trees.iter().any(|c| c.coordinates() == [0.0, 2.0]));
+        assert!(adjacent_trees
+            .iter()
+            .any(|c| c.coordinates() == [0.0, -2.0]));
+
+        assert!(adjacent_trees.iter().any(|c| c.coordinates() == [2.0, 0.0]));
+        assert!(adjacent_trees
+            .iter()
+            .any(|c| c.coordinates() == [-2.0, 0.0]));
     }
 }
