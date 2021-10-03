@@ -29,7 +29,7 @@ mod tests {
     fn calculate_variance_with_children() {
         let mut tree = TpnTree::<f64, 2>::root(1.0);
 
-        tree.divide();
+        assert!(tree.divide().is_ok());
 
         for (i, c) in tree.iter_children_mut().enumerate() {
             c.data = Some(i as f64)

@@ -30,7 +30,7 @@ impl<T> TpnTree<T> {
     /// The `level` of the root is usually zero.
     /// The length of the vectors must match.
     /// ```
-    /// # use crate::tpntree::tpntree_dynamic::TpnTree;
+    /// # use tpntree::tpntree_dynamic::TpnTree;
     ///
     /// let root = TpnTree::<()>::new(vec![0.0], vec![1.0], 0);
     /// ```
@@ -39,7 +39,7 @@ impl<T> TpnTree<T> {
     /// The tree root corresponds to a square with its center sitting at the coordinates (1.0/1.0) with edges one edge being 4.0 the other being 1.0 units long.
     /// The edges equate to twice the span as it originates from the midpoint.
     /// ```
-    /// # use crate::tpntree::tpntree_dynamic::TpnTree;
+    /// # use tpntree::tpntree_dynamic::TpnTree;
     /// let root = TpnTree::<()>::new(vec![1.0, 1.0], vec![2.0, 0.5], 0);
     /// ```
     pub fn new(coordinates: Vec<f64>, span: Vec<f64>, level: usize) -> Self {
@@ -65,7 +65,7 @@ impl<T> TpnTree<T> {
     /// Here we create a three dimensional TpnTree with a span of 1.0 in ervery dimension.
     /// That is equal to a cube with edges of length 2.0.
     /// ```
-    /// # use crate::tpntree::tpntree_dynamic::TpnTree;
+    /// # use tpntree::tpntree_dynamic::TpnTree;
     /// let root = TpnTree::<()>::root(1.0, 3);
     /// ```
     pub fn root(span: f64, dimensions: usize) -> Self {
@@ -87,7 +87,7 @@ impl<T> TpnTree<T> {
     /// |   | => +-+-+
     /// +---+    +-+-+
     /// ```
-    /// # use crate::tpntree::tpntree_dynamic::TpnTree;
+    /// # use tpntree::tpntree_dynamic::TpnTree;
     /// let mut root = TpnTree::<()>::root(1.0, 2);
     ///
     /// assert!(root.divide());

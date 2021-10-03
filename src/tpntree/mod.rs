@@ -1,10 +1,15 @@
 mod iterators;
 mod nalgebra;
+mod spatial;
 
 use bitvec::bitvec;
 
+use crate::errors::TpnTreeError;
+pub use spatial::SpatialTree;
+pub use spatial::Tree3D;
+
 #[derive(Debug, Clone)]
-pub struct TpnTree<D, const N: usize> {
+pub struct TpnTree<T, const N: usize> {
     /// Coordinates of the N-dimensional hyperrectangle center.
     coordinates: [f64; N],
     /// Length of the normals from center of N-dimensional hyperrectangle to its faces.
@@ -14,10 +19,10 @@ pub struct TpnTree<D, const N: usize> {
     /// There are zero or 2^N children, one times two per axis.
     children: Vec<Self>,
     /// Any potential data the tree might hold.
-    data: Option<D>,
+    data: Option<T>,
 }
 
-impl<D, const N: usize> TpnTree<D, N> {
+impl<T, const N: usize> TpnTree<T, N> {
     /// Creates a new TpnTree.
     ///
     /// Use this function if you need explicit control over the initial coordinates or a span with various length along different axis.
@@ -29,7 +34,7 @@ impl<D, const N: usize> TpnTree<D, N> {
     /// This is equal to a line segment spanning from -1.0 to 1.0 with its midpoint at 0.0.
     /// The `level` of the root is usually zero.
     /// ```
-    /// # use crate::tpntree::tpntree::TpnTree;
+    /// # use tpntree::tpntree::TpnTree;
     ///
     /// let root = TpnTree::<(), 1>::new([0.0], [1.0], 0);
     /// ```
@@ -38,7 +43,7 @@ impl<D, const N: usize> TpnTree<D, N> {
     /// The tree root corresponds to a square with its center sitting at the coordinates (1.0/1.0) with edges one edge being 4.0 the other being 1.0 units long.
     /// The edges equate to twice the span as it originates from the midpoint.
     /// ```
-    /// # use crate::tpntree::tpntree::TpnTree;
+    /// # use tpntree::tpntree::TpnTree;
     /// let root = TpnTree::<(), 2>::new([1.0, 1.0], [2.0, 0.5], 0);
     /// ```
     pub fn new(coordinates: [f64; N], span: [f64; N], level: usize) -> Self {
@@ -60,7 +65,7 @@ impl<D, const N: usize> TpnTree<D, N> {
     /// Here we create a three dimensional TpnTree with a span of 1.0 in ervery dimension.
     /// That is equal to a cube with edges of length 2.0.
     /// ```
-    /// # use crate::tpntree::tpntree::TpnTree;
+    /// # use tpntree::tpntree::TpnTree;
     /// let root = TpnTree::<(), 3>::root(1.0);
     /// ```
     pub fn root(span: f64) -> Self {
@@ -78,18 +83,18 @@ impl<D, const N: usize> TpnTree<D, N> {
     ///
     /// Dividing in the 2D case is creating four smaller squares.
     ///
+    /// ```
     /// +---+    +-+-+
     /// |   | => +-+-+
     /// +---+    +-+-+
-    /// ```
-    /// # use crate::tpntree::tpntree::TpnTree;
+    /// # use tpntree::tpntree::TpnTree;
     /// let mut root = TpnTree::<(), 2>::root(1.0);
     ///
-    /// assert!(root.divide());
+    /// assert!(root.divide().is_ok());
     /// assert_eq!(root.child_count(), 4);
     /// ```
-    pub fn divide(&mut self) -> bool {
-        if self.children.is_empty() {
+    pub fn divide(&mut self) -> Result<(), TpnTreeError> {
+        if self.is_leaf() {
             let mut children = Vec::<Self>::new();
             let mut pattern = bitvec![0; self.coordinates.len()];
 
@@ -123,9 +128,9 @@ impl<D, const N: usize> TpnTree<D, N> {
                 }
             }
             self.children = children;
-            true
+            Ok(())
         } else {
-            false
+            Err(TpnTreeError::CanNotDivide)
         }
     }
 
@@ -164,18 +169,28 @@ impl<D, const N: usize> TpnTree<D, N> {
     }
 
     /// Returns the data by reference of the TpnTree.
-    pub fn data(&self) -> &Option<D> {
-        &self.data
+    pub fn data(&self) -> Option<&T> {
+        self.data.as_ref()
     }
 
     /// Returns the data by mutable reference of the TpnTree.
-    pub fn data_mut(&mut self) -> &mut Option<D> {
+    pub fn data_mut(&mut self) -> &mut Option<T> {
         &mut self.data
     }
 
     /// Returns the level of the TpnTree.
     pub fn level(&self) -> usize {
         self.level
+    }
+
+    /// Returns wheter the tree is a root.
+    pub fn is_root(&self) -> bool {
+        self.level == 0
+    }
+
+    /// Returns wheter the tree is a leaf.
+    pub fn is_leaf(&self) -> bool {
+        self.children.is_empty()
     }
 
     /// Returns a list of adjacent trees along each dimension.
@@ -185,13 +200,13 @@ impl<D, const N: usize> TpnTree<D, N> {
     pub fn adjacent_trees(&self) -> Vec<Self> {
         let mut adjacent_trees = Vec::new();
         for i in 0..self.coordinates.len() {
-            let mut coordinates_above = self.coordinates.clone();
+            let mut coordinates_above = self.coordinates;
             coordinates_above[i] += self.span[i] * 2.0;
-            let tree_above = Self::new(coordinates_above, self.span.clone(), 0);
+            let tree_above = Self::new(coordinates_above, self.span, 0);
 
-            let mut coordinates_below = self.coordinates.clone();
+            let mut coordinates_below = self.coordinates;
             coordinates_below[i] -= self.span[i] * 2.0;
-            let tree_below = Self::new(coordinates_below, self.span.clone(), 0);
+            let tree_below = Self::new(coordinates_below, self.span, 0);
 
             adjacent_trees.push(tree_above);
             adjacent_trees.push(tree_below);
@@ -209,20 +224,20 @@ mod tests {
     pub fn divide_into_subregions_dim_1() {
         let mut root = TpnTree::<(), 1>::root(2.0);
 
-        assert!(root.divide());
+        assert!(root.divide().is_ok());
         assert_eq!(root.child_count(), 2);
 
         assert_eq!(root.get_child(0).map(|c| c.coordinates()), Some([1.0]));
         assert_eq!(root.get_child(1).map(|c| c.coordinates()), Some([-1.0]));
 
-        assert!(!root.divide());
+        assert!(root.divide().is_err());
     }
 
     #[test]
     pub fn divide_into_subregions_dim_2() {
         let mut root = TpnTree::<(), 2>::root(1.0);
 
-        assert!(root.divide());
+        assert!(root.divide().is_ok());
         assert_eq!(root.child_count(), 4);
 
         assert!(root.iter_children().any(|c| c.coordinates() == [0.5, 0.5]));
@@ -232,14 +247,14 @@ mod tests {
             .iter_children()
             .any(|c| c.coordinates() == [-0.5, -0.5]));
 
-        assert!(!root.divide());
+        assert!(root.divide().is_err());
     }
 
     #[test]
     pub fn divide_into_subregions_dim_3() {
         let mut root = TpnTree::<(), 3>::root(1.0);
 
-        assert!(root.divide());
+        assert!(root.divide().is_ok());
         assert_eq!(root.child_count(), 8);
 
         assert!(root
@@ -267,7 +282,7 @@ mod tests {
             .iter_children()
             .any(|c| c.coordinates() == [-0.5, -0.5, -0.5]));
 
-        assert!(!root.divide());
+        assert!(root.divide().is_err());
     }
 
     #[test]
