@@ -3,6 +3,7 @@
 //! A quadtree is the two-dimensional case, an octtree is the three-dimensional case of the tpntree.
 
 mod errors;
+pub mod iterators;
 pub mod tpntree;
 pub mod tpntree_dynamic;
 

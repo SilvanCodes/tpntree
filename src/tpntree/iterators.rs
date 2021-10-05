@@ -1,66 +1,7 @@
-use std::collections::VecDeque;
+use crate::{impl_breadth_first_iterator, impl_depth_first_iterator};
 
-use super::TpnTree;
-
-impl<D, const N: usize> TpnTree<D, N> {
-    /// Iterate the tree depth first, starting with the root.
-    pub fn iter_depth_first(&self) -> TpnTreeDepthFirstIterator<D, N> {
-        TpnTreeDepthFirstIterator::new(self)
-    }
-
-    /// Iterate the tree breadth first, starting with the root.
-    pub fn iter_breadth_first(&self) -> TpnTreeBreadthFirstIterator<D, N> {
-        TpnTreeBreadthFirstIterator::new(self)
-    }
-}
-
-pub struct TpnTreeDepthFirstIterator<'a, D, const N: usize> {
-    stack: Vec<&'a TpnTree<D, N>>,
-}
-
-impl<'a, D, const N: usize> TpnTreeDepthFirstIterator<'a, D, N> {
-    fn new(root: &'a TpnTree<D, N>) -> Self {
-        Self { stack: vec![root] }
-    }
-}
-
-impl<'a, D, const N: usize> Iterator for TpnTreeDepthFirstIterator<'a, D, N> {
-    type Item = &'a TpnTree<D, N>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.stack.pop().map(|tree| {
-            for child in &tree.children {
-                self.stack.push(child);
-            }
-            tree
-        })
-    }
-}
-
-pub struct TpnTreeBreadthFirstIterator<'a, D, const N: usize> {
-    queue: VecDeque<&'a TpnTree<D, N>>,
-}
-
-impl<'a, D, const N: usize> TpnTreeBreadthFirstIterator<'a, D, N> {
-    fn new(root: &'a TpnTree<D, N>) -> Self {
-        Self {
-            queue: vec![root].into_iter().collect(),
-        }
-    }
-}
-
-impl<'a, D, const N: usize> Iterator for TpnTreeBreadthFirstIterator<'a, D, N> {
-    type Item = &'a TpnTree<D, N>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.queue.pop_front().map(|tree| {
-            for child in &tree.children {
-                self.queue.push_back(child);
-            }
-            tree
-        })
-    }
-}
+impl_breadth_first_iterator!(N);
+impl_depth_first_iterator!(N);
 
 #[cfg(test)]
 mod tests {

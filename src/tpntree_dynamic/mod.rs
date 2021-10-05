@@ -3,8 +3,6 @@ mod nalgebra;
 
 use bitvec::bitvec;
 
-pub use iterators::{TpnTreeBreadthFirstIterator, TpnTreeDepthFirstIterator};
-
 #[derive(Debug, Clone)]
 pub struct TpnTree<T> {
     /// Coordinates of the N-dimensional hyperrectangle center.

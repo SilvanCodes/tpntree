@@ -12,8 +12,6 @@ pub type Tree3D<T = [f64; 3]> = SpatialTree<T, 3>;
 impl<T: Coordinates<N>, const N: usize> SpatialTree<T, N> {
     /// Checks if the tree spans over the coordinates of the provided data.
     ///
-    /// Errors if the dimensions of the data does not match the dimensions of the tree.
-    ///
     /// ```
     /// # use tpntree::tpntree::Tree3D;
     /// # use tpntree::TpnTreeError;
@@ -39,7 +37,7 @@ impl<T: Coordinates<N>, const N: usize> SpatialTree<T, N> {
     /// Inserts data in the tree with its center closest to the data given the constrains of the `division_condition`.
     ///
     /// The `division condition` determines when a tree divides and inserts its data into its children.
-    /// Errors if the tree does not span the data or the dimensions mismatch.
+    /// Errors if the tree does not span the data.
     ///
     /// ```
     /// # use tpntree::tpntree::Tree3D;
@@ -95,7 +93,7 @@ impl<T: Coordinates<N>, const N: usize> SpatialTree<T, N> {
 
     /// Return the tree closest to the given data coordinates.
     ///
-    /// Errors if the tree does not span the data or the dimensions mismatch.
+    /// Errors if the tree does not span the data.
     ///
     /// ```
     /// # use tpntree::tpntree::Tree3D;
