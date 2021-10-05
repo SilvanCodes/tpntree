@@ -5,6 +5,7 @@ mod spatial;
 use bitvec::bitvec;
 
 use crate::errors::TpnTreeError;
+pub use iterators::{TpnTreeBreadthFirstIterator, TpnTreeDepthFirstIterator};
 pub use spatial::SpatialTree;
 pub use spatial::Tree3D;
 
@@ -84,9 +85,9 @@ impl<T, const N: usize> TpnTree<T, N> {
     /// Dividing in the 2D case is creating four smaller squares.
     ///
     /// ```
-    /// +---+    +-+-+
-    /// |   | => +-+-+
-    /// +---+    +-+-+
+    /// // +---+    +-+-+
+    /// // |   | => +-+-+
+    /// // +---+    +-+-+
     /// # use tpntree::tpntree::TpnTree;
     /// let mut root = TpnTree::<(), 2>::root(1.0);
     ///

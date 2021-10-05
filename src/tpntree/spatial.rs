@@ -9,7 +9,7 @@ pub type SpatialTree<T, const N: usize> = TpnTree<Vec<T>, N>;
 /// A helper type to specify a tree working with 3D data.
 pub type Tree3D<T = [f64; 3]> = SpatialTree<T, 3>;
 
-impl<T: Coordinates, const N: usize> SpatialTree<T, N> {
+impl<T: Coordinates<N>, const N: usize> SpatialTree<T, N> {
     /// Checks if the tree spans over the coordinates of the provided data.
     ///
     /// Errors if the dimensions of the data does not match the dimensions of the tree.
@@ -19,26 +19,21 @@ impl<T: Coordinates, const N: usize> SpatialTree<T, N> {
     /// # use tpntree::TpnTreeError;
     ///  let tree = Tree3D::root(1.0);
     ///
-    ///  assert_eq!(tree.spans(&[0.5,0.5,0.5]), Ok(true));
-    ///  assert_eq!(tree.spans(&[1.5,0.5,0.5]), Ok(false));
+    ///  assert_eq!(tree.spans(&[0.5,0.5,0.5]), true);
+    ///  assert_eq!(tree.spans(&[1.5,0.5,0.5]), false);
     /// ```
-    pub fn spans(&self, data: &T) -> Result<bool, TpnTreeError> {
+    pub fn spans(&self, data: &T) -> bool {
         let data_coordinates = data.coordinates();
 
-        if data_coordinates.len() != self.coordinates().len() {
-            Err(TpnTreeError::DimensionMismatch)
-        } else {
-            // checks if tpn tree contains the data coordinates
-            // children overlap on their edges
-            Ok(self
-                .coordinates
-                .iter()
-                .enumerate()
-                .all(|(dimension, &coordinate)| {
-                    data_coordinates[dimension] <= coordinate + self.span()[dimension]
-                        && data_coordinates[dimension] >= coordinate - self.span()[dimension]
-                }))
-        }
+        // checks if tpn tree contains the data coordinates
+        // children overlap on their edges
+        self.coordinates
+            .iter()
+            .enumerate()
+            .all(|(dimension, &coordinate)| {
+                data_coordinates[dimension] <= coordinate + self.span()[dimension]
+                    && data_coordinates[dimension] >= coordinate - self.span()[dimension]
+            })
     }
 
     /// Inserts data in the tree with its center closest to the data given the constrains of the `division_condition`.
@@ -58,12 +53,12 @@ impl<T: Coordinates, const N: usize> SpatialTree<T, N> {
         division_condition: &dyn Fn(&Self) -> bool,
     ) -> Result<(), TpnTreeError> {
         // if the root tree does not span over the data, it can not be inserted
-        if self.is_root() && !self.spans(&data)? {
+        if self.is_root() && !self.spans(&data) {
             return Err(TpnTreeError::DoesNotSpan);
         }
 
         if self.is_leaf() {
-            if division_condition(&self) {
+            if division_condition(self) {
                 self.divide()?;
 
                 for data in self
@@ -93,7 +88,7 @@ impl<T: Coordinates, const N: usize> SpatialTree<T, N> {
         self.children
             .iter_mut()
             // we can savely unwrap here as dimn=ensions are checked before
-            .find(|child| child.spans(&data).unwrap())
+            .find(|child| child.spans(&data))
             .map(|child| child.insert_by_coordinates(data, division_condition))
             .unwrap()
     }
@@ -114,12 +109,12 @@ impl<T: Coordinates, const N: usize> SpatialTree<T, N> {
     ///   .unwrap());
     /// ```
     pub fn find_by_coordinates(&self, data: &T) -> Result<&Self, TpnTreeError> {
-        if self.is_root() && !self.spans(data)? {
+        if self.is_root() && !self.spans(data) {
             return Err(TpnTreeError::DoesNotSpan);
         }
 
         for child in &self.children {
-            if child.spans(data).unwrap() {
+            if child.spans(data) {
                 return child.find_by_coordinates(data);
             }
         }
@@ -137,7 +132,7 @@ mod tests {
 
         let data_inside = [1.0, 1.0, 1.0];
 
-        assert!(tree.spans(&data_inside).unwrap());
+        assert!(tree.spans(&data_inside));
     }
 
     #[test]
@@ -146,7 +141,7 @@ mod tests {
 
         let data_outside = [1.0, 1.5, 1.0];
 
-        assert!(!tree.spans(&data_outside).unwrap());
+        assert!(!tree.spans(&data_outside));
     }
 
     #[test]
@@ -174,10 +169,10 @@ mod tests {
         let division_condition = |tree: &Tree3D| tree.data().is_some();
 
         assert!(tree
-            .insert_by_coordinates(data_one.clone(), &division_condition)
+            .insert_by_coordinates(data_one, &division_condition)
             .is_ok());
         assert!(tree
-            .insert_by_coordinates(data_two.clone(), &division_condition)
+            .insert_by_coordinates(data_two, &division_condition)
             .is_ok());
         assert!(tree
             .find_by_coordinates(&[0.5, 0.5, 0.5])

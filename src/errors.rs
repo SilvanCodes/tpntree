@@ -4,7 +4,6 @@ use std::{error::Error, fmt::Display};
 pub enum TpnTreeError {
     DoesNotSpan,
     CanNotDivide,
-    DimensionMismatch,
 }
 
 impl Display for TpnTreeError {
@@ -15,10 +14,6 @@ impl Display for TpnTreeError {
                 "The tree does not span over the provided data coordinates."
             ),
             TpnTreeError::CanNotDivide => write!(f, "The tree has been divided before."),
-            TpnTreeError::DimensionMismatch => write!(
-                f,
-                "The dimension of the data did not match the dimension of the tree."
-            ),
         }
     }
 }
