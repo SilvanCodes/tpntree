@@ -5,7 +5,6 @@ mod spatial;
 use bitvec::bitvec;
 
 use crate::errors::TpnTreeError;
-// pub use iterators::{TpnTreeBreadthFirstIterator, TpnTreeDepthFirstIterator};
 pub use spatial::SpatialTree;
 pub use spatial::Tree3D;
 
