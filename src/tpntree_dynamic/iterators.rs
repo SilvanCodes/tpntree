@@ -4,12 +4,12 @@ use super::TpnTree;
 
 impl<D> TpnTree<D> {
     /// Iterate the tree depth first, starting with the root.
-    fn iter_depth_first(&self) -> TpnTreeDepthFirstIterator<D> {
+    pub fn iter_depth_first(&self) -> TpnTreeDepthFirstIterator<D> {
         TpnTreeDepthFirstIterator::new(self)
     }
 
     /// Iterate the tree breadth first, starting with the root.
-    fn iter_breadth_first(&self) -> TpnTreeBreadthFirstIterator<D> {
+    pub fn iter_breadth_first(&self) -> TpnTreeBreadthFirstIterator<D> {
         TpnTreeBreadthFirstIterator::new(self)
     }
 }
