@@ -1,6 +1,6 @@
 # Welcome to tpntree!
 
-![space partition](https://images.silvan.codes/noun_partition_591721_100x100.png)
+![space partition](./noun_partition_591721_100x100.png)
 
 The N-dimensional generalization of region quad/oc-trees.
 
