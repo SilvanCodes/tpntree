@@ -14,7 +14,7 @@ categories = ["data-structures"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bitvec = "0.22"
+bitvec = "1.0.1"
 nalgebra = { version = "0.28", optional = true }
 
 [features]
