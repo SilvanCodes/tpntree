@@ -111,7 +111,7 @@ impl<T> TpnTree<T> {
                 children.push(Self::new(coordinates, span, self.level + 1));
 
                 let mut carry = pattern.clone();
-                carry.set_all(false);
+                carry.set_elements(0);
                 let mut one = carry.clone();
                 one.set(0, true);
 
